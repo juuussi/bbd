@@ -11,4 +11,5 @@ RoxygenNote: 5.0.1
 Imports:
   foreach
 Suggests:
-  futile.logger
+  futile.logger,
+    testthat

@@ -1,0 +1,11 @@
+.Rbuildignore
+.Rproj.user
+.Rhistory
+.RData
+inst/doc
+.httr-oauth
+.*.Rnb.cached
+man/.Rapp.history
+
+
+.DS_Store
