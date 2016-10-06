@@ -1,0 +1,14 @@
+Package: bbd
+Type: Package
+Title: Big Beatiful Data - Big data analysis and visualization
+Version: 0.1.0
+Authors@R: person("Jussi", "Paananen", email = "jussi.paananen@uef.fi", role = c("aut", "cre"))
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: Methods for analyzing, managing and visualizing multi-dimensional big data.
+License: MIT + file LICENSE
+LazyData: TRUE
+RoxygenNote: 5.0.1
+Imports:
+  foreach
+Suggests:
+  futile.logger
