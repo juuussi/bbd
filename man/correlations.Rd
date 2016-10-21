@@ -4,7 +4,7 @@
 \alias{correlations}
 \title{Test of correlation for multiple variables between paired samples}
 \usage{
-correlations(data, x.variables, y.variables = NULL, parallel = TRUE,
+correlations(data, x.variables, y.variables = NULL, parallel = FALSE,
   parallel.inorder = FALSE, ...)
 }
 \arguments{
@@ -14,7 +14,7 @@ correlations(data, x.variables, y.variables = NULL, parallel = TRUE,
 
 \item{y.variables}{character vector of column names for variables to correlate to \code{variables.x}. If left \code{NULL}, correlate all \code{variables.x} to each other.}
 
-\item{parallel}{logical flag indicating if the tasks should be run in parallel. The default value is \code{TRUE}.}
+\item{parallel}{logical flag indicating if the tasks should be run in parallel. The default value is \code{FALSE}.}
 
 \item{parallel.inorder}{logical flag indicating if parallelry run tasks should be combined in the same order that they were submitted. If the order is not important, then setting \code{parallel.inorder} to \code{FALSE} can result in improved performance. The default value is \code{FALSE}.}
 

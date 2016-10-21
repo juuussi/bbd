@@ -12,4 +12,5 @@ Imports:
   foreach
 Suggests:
   futile.logger,
-    testthat
+  testthat,
+  ggplot2
