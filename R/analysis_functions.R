@@ -146,6 +146,8 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
       result <- list(empty_string=which(colSums(sapply(X=data, FUN=function(x) { !is.na(x) & x == "" })) > 0))
     } else if (check == "whitespace") {
       result <- list(whitespace=which(sapply(X=data, FUN=function(x) { length(grep("^[[:space:]]+$", x))}) > 0))
+    } else if (check == "comma_as_decimal_separator") {
+      result <- list(whitespace=which(sapply(X=data, FUN=function(x) { length(grep("(^[0-9]+,[0-9]*$)|(^[0-9]*,[0-9]+$)", x))}) > 0))
     } else if (check == "leading_or_trailing_whitespace") {
       result <- list(leading_or_trailing_whitespace=which(sapply(X=data, FUN=function(x) { length(grep("(^\\s+\\S+)|(\\S+\\s+$)", x, perl=TRUE))}) > 0))
     } else if (check == "byte_sequence_character") {
