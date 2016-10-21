@@ -120,7 +120,7 @@ correlations <- function(data, x.variables, y.variables=NULL, parallel=FALSE, pa
 #'
 #' summarize_data(tmp)
 
-summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string", "whitespace", "leading_or_trailing_whitespace", "byte_sequence_character", "unicode_replacement_character", "linebreak", "excel_formula_error"), parallel=FALSE) {
+summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string", "whitespace", "leading_or_trailing_whitespace", "byte_sequence_character", "unicode_replacement_character", "linebreak", "excel_formula_error", "comma_as_decimal_separator", "duplicated_columns"), parallel=FALSE) {
 
   # Select serial or parallel operator for foreach-function
   if (parallel) {
@@ -147,7 +147,7 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
     } else if (check == "whitespace") {
       result <- list(whitespace=which(sapply(X=data, FUN=function(x) { length(grep("^[[:space:]]+$", x))}) > 0))
     } else if (check == "comma_as_decimal_separator") {
-      result <- list(whitespace=which(sapply(X=data, FUN=function(x) { length(grep("(^[0-9]+,[0-9]*$)|(^[0-9]*,[0-9]+$)", x))}) > 0))
+      result <- list(comma_as_decimal_separators=which(sapply(X=data, FUN=function(x) { length(grep("(^[0-9]+,[0-9]*$)|(^[0-9]*,[0-9]+$)", x))}) > 0))
     } else if (check == "leading_or_trailing_whitespace") {
       result <- list(leading_or_trailing_whitespace=which(sapply(X=data, FUN=function(x) { length(grep("(^\\s+\\S+)|(\\S+\\s+$)", x, perl=TRUE))}) > 0))
     } else if (check == "byte_sequence_character") {
@@ -158,6 +158,10 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
       result <- list(linebreak=which(sapply(X=data, FUN=function(x) { length(grep("(\r)|(\n)", x))}) > 0))
     } else if (check == "excel_formula_error") {
       result <- list(excel_formula_error=which(sapply(X=data, FUN=function(x) { length(grep("^((#DIV/0!)|(#N/A)|(#NAME\\?)|(#NULL!)|(#NUM!)|(#REF!)|(#VALUE!)|(#GETTING_DATA))$", x))}) > 0))
+    } else if (check == "duplicated_columns") {
+      dupli <- which(duplicated(as.list(data)))
+      names(dupli) <- colnames(data[dupli])
+      result <- list(duplicated_columns=dupli)
     }
     result
   }
