@@ -98,8 +98,9 @@ correlations <- function(data, x.variables, y.variables=NULL, parallel=FALSE, pa
 #' @description Summarize and check \code{data.frame} for potential data errors.
 #'
 #' @param data a data.frame to process
-#' @param checks checks to perform.
 #' @param parallel logical flag indicating if the tasks should be run in parallel. The default value is \code{FALSE}.
+#' @param row.checks row specific checks to run.
+#' @param col.checks column specific checks to run.
 #'
 #' @return An object of class "summarize_data" with the following components: (TBA)
 #'
@@ -120,7 +121,12 @@ correlations <- function(data, x.variables, y.variables=NULL, parallel=FALSE, pa
 #'
 #' summarize_data(tmp)
 
-summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string", "whitespace", "leading_or_trailing_whitespace", "byte_sequence_character", "unicode_replacement_character", "linebreak", "excel_formula_error", "comma_as_decimal_separator", "duplicated_columns"), parallel=FALSE) {
+summarize_data <- function(data, row.checks=c("duplicated_row"), col.checks=c("na", "infinite", "nan", "empty_string", "whitespace", "leading_or_trailing_whitespace", "byte_sequence_character", "unicode_replacement_character", "linebreak", "excel_formula_error", "comma_as_decimal_separator", "duplicated_column"), parallel=FALSE) {
+
+  # Toggle for logging/availability of futile.logger package
+  f_logging <- requireNamespace("futile.logger", quietly = TRUE)
+
+  if (f_logging) futile.logger::flog.debug("Initializing summary analysis.")
 
   # Select serial or parallel operator for foreach-function
   if (parallel) {
@@ -134,8 +140,10 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
   class_freq <- classes_df$Freq
   names(class_freq) <- classes_df$classes
 
-  checks <- foreach::foreach (i=1:length(checks), .combine=c, .inorder=FALSE) %do_operator% {
-    check <- checks[i]
+  col.checks.result <- foreach::foreach (i=1:length(col.checks), .combine=c, .inorder=FALSE) %do_operator% {
+    check <- col.checks[i]
+    if (f_logging) futile.logger::flog.debug(paste0("Column check: ", check))
+
     if (check == "na") {
       result <- list(na=which(colSums(sapply(X=data, FUN=function(x) { is.na(x) })) > 0))
     } else if (check == "infinite") {
@@ -158,15 +166,33 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
       result <- list(linebreak=which(sapply(X=data, FUN=function(x) { length(grep("(\r)|(\n)", x))}) > 0))
     } else if (check == "excel_formula_error") {
       result <- list(excel_formula_error=which(sapply(X=data, FUN=function(x) { length(grep("^((#DIV/0!)|(#N/A)|(#NAME\\?)|(#NULL!)|(#NUM!)|(#REF!)|(#VALUE!)|(#GETTING_DATA))$", x))}) > 0))
-    } else if (check == "duplicated_columns") {
+    } else if (check == "duplicated_column") {
       dupli <- which(duplicated(as.list(data)))
-      names(dupli) <- colnames(data[dupli])
+      names(dupli) <- colnames(data)[dupli]
       result <- list(duplicated_columns=dupli)
     }
+    if (f_logging) futile.logger::flog.trace(paste0("- Check result: ", result))
+
     result
   }
 
-  structure(list(dimensions=dim(data), classes=classes, class_freq=class_freq, checks=checks), class="summarized.data")
+  if (f_logging) futile.logger::flog.debug("Starting row checks.")
+  row.checks.result <- foreach::foreach (i=1:length(row.checks), .combine=c, .inorder=FALSE) %do_operator% {
+    check <- row.checks[i]
+    if (f_logging) futile.logger::flog.debug(paste0("Row check: ", check))
+
+    if (check == "duplicated_row") {
+      dupli <- which(duplicated(data))
+      names(dupli) <- rownames(data)[dupli]
+      result <- list(duplicated_row=dupli)
+
+    }
+    if (f_logging) futile.logger::flog.trace(paste0("- Check result: ", result))
+
+    result
+  }
+
+  structure(list(dimensions=dim(data), classes=classes, class_freq=class_freq, col.checks=col.checks.result, row.checks=row.checks.result), class="summarized.data")
 }
 
 #' Printing summarize_data
@@ -176,7 +202,8 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
 #' @usage
 #' ## S3 method for class 'summarized.data'
 #'
-#' @param x object of class \code{summarize_data}
+#' @param x object of class \code{summarize_data}.
+#' @param ... further arguments passed to or from other methods.
 #'
 #' @export print.summarized.data
 #'
@@ -188,12 +215,27 @@ summarize_data <- function(data, checks=c("na", "infinite", "nan", "empty_string
 print.summarized.data <- function(x, ...) {
   cat(paste0("Dimensions: ",  x$dimensions[1], " (rows) x ", x$dimensions[2], " (cols). Total observations: ", x$dimensions[1] * x$dimensions[2], "\n"))
   cat(paste0("Column classes:\n - ", paste0(names(x$class_freq), ": ", x$class_freq, collapse=", "), "\n"))
+
+  # Column warnings
   warning_text_displayed <- FALSE
-  for (name in names(x$checks)) {
-    warning_hits <- x$checks[[name]]
+  for (name in names(x$col.checks)) {
+    warning_hits <- x$col.checks[[name]]
     if (length(warning_hits) > 0) {
       if (!warning_text_displayed) {
         cat("Warnings (amount of columns with possible errors):\n")
+        warning_text_displayed <- TRUE
+      }
+      cat(paste0(" - ", name, ": ", length(warning_hits), collapse=" "), "\n")
+    }
+  }
+
+  # Row warnings
+  warning_text_displayed <- FALSE
+  for (name in names(x$row.checks)) {
+    warning_hits <- x$row.checks[[name]]
+    if (length(warning_hits) > 0) {
+      if (!warning_text_displayed) {
+        cat("Warnings (amount of rows with possible errors):\n")
         warning_text_displayed <- TRUE
       }
       cat(paste0(" - ", name, ": ", length(warning_hits), collapse=" "), "\n")

@@ -7,7 +7,9 @@
 ## S3 method for class 'summarized.data'
 }
 \arguments{
-\item{x}{object of class \code{summarize_data}}
+\item{x}{object of class \code{summarize_data}.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \description{
 Print a \code{summarized.data} object.

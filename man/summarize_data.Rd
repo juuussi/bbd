@@ -4,15 +4,18 @@
 \alias{summarize_data}
 \title{Summarize data}
 \usage{
-summarize_data(data, checks = c("na", "infinite", "nan", "empty_string",
-  "whitespace", "leading_or_trailing_whitespace", "byte_sequence_character",
-  "unicode_replacement_character", "linebreak", "excel_formula_error"),
-  parallel = FALSE)
+summarize_data(data, row.checks = c("duplicated_row"), col.checks = c("na",
+  "infinite", "nan", "empty_string", "whitespace",
+  "leading_or_trailing_whitespace", "byte_sequence_character",
+  "unicode_replacement_character", "linebreak", "excel_formula_error",
+  "comma_as_decimal_separator", "duplicated_column"), parallel = FALSE)
 }
 \arguments{
 \item{data}{a data.frame to process}
 
-\item{checks}{checks to perform.}
+\item{row.checks}{row specific checks to run.}
+
+\item{col.checks}{column specific checks to run.}
 
 \item{parallel}{logical flag indicating if the tasks should be run in parallel. The default value is \code{FALSE}.}
 }
